@@ -6,20 +6,30 @@ phases:
       - echo "Installing dependencies..."
   pre_build:
     commands:
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 337909784521.dkr.ecr.eu-north-1.amazonaws.com
-      - echo "Building the Docker image..."
-      - docker build -t doc .
-      - docker tag doc:latest 337909784521.dkr.ecr.eu-north-1.amazonaws.com/doc:latest
+
   build:
     commands:
+      - apt-get update -y
+      - apt-get install -y docker.io
+
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 337909784521.dkr.ecr.eu-north-1.amazonaws.com
+      
+      - echo "Building the Docker image..."
+      - docker build -t doc .
+      
+      - docker tag doc:latest 337909784521.dkr.ecr.eu-north-1.amazonaws.com/doc:latest
       - echo "Pushing the Docker image to ECR..."
       - docker push 337909784521.dkr.ecr.eu-north-1.amazonaws.com/doc:latest
-artifacts:
-  files:
-    - '[
+
+      - | 
+        echo '[
         {
           "name": "newcontainer",
           "imageUri": "337909784521.dkr.ecr.eu-north-1.amazonaws.com/doc:latest"
-        }
-      ]'
+          }
+        ]' >imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
